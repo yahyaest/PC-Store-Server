@@ -1,0 +1,54 @@
+version: '2.1'
+services:
+  pc-store-app:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /tmp/app/mysqld:/run/mysqld
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+      
+  mysql:
+    image: mysql:8
+    ports:
+      - "3307:3307"
+    environment:
+      - MYSQL_DATABASE='pcstore'
+      - MYSQL_USER='root'
+      - MYSQL_PASSWORD='root'
+      - MYSQL_ROOT_PASSWORD='root'
+      #- MYSQL_HOST=''
+    volumes:
+      - /tmp/app/mysqld:/var/run/mysqld
+      - ./mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 10
+    
+  redis:
+    image: redis:latest
+    ports:
+      - "6378:6379"
+
+  adminer:
+    image: adminer
+    ports:
+        - 8090:8080
+    restart: unless-stopped
+
+volumes:
+  mysql:
+
+        
+

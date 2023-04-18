@@ -49,10 +49,7 @@ class Collection(models.Model):
 class Product(models.Model):
     title = models.CharField(max_length=255)
     description = models.JSONField(default=defaultJsonField)
-    price = models.DecimalField(
-        max_digits=12,
-        decimal_places=3,
-        validators=[MinValueValidator(1)])
+    price = models.CharField(max_length=255)
     inventory = models.IntegerField(validators=[MinValueValidator(0)])
     slug = models.SlugField(max_length=255)
     last_update = models.DateTimeField(auto_now=True)
@@ -92,7 +89,7 @@ class OrderItem(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.PROTECT, related_name="orderitems")
     quantity = models.PositiveSmallIntegerField()
-    unit_price = models.DecimalField(max_digits=6, decimal_places=2)
+    unit_price = models.CharField(max_length=255)
 
 
 class Cart(models.Model):

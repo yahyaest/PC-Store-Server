@@ -13,6 +13,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 import graphql_jwt
 from graphql_auth.schema import UserQuery, MeQuery
 from graphql_auth import mutations
+from django.core.cache import cache
 
 from store.models import Product, Promotion
 from tags.models import Tag, TaggedItem
@@ -176,14 +177,28 @@ class CoreQuery(graphene.ObjectType):
         return Product.objects.get(pk=id)
 
     def resolve_full_products(self, info, search=None, **kwargs):
+        # Check if the result is already cached
+        cache_key = "cached-products"
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            print("cached_result lenght: ", len(cached_result))
+            print("cached_result : ",cached_result)
+            return cached_result
+
+        # If the result is not cached, fetch it from the database
         if search:
             # filter = (Q(title__icontains=search) |
             #           Q(description__icontains=search))
             filter = Q(title__icontains=search)
 
-            return Product.objects.prefetch_related('promotions').all().filter(filter)
+            result = Product.objects.prefetch_related('promotions').all().filter(filter)
 
-        return Product.objects.prefetch_related('promotions').all()
+        result = Product.objects.prefetch_related('promotions').all()
+
+        # Cache the result
+        cache.set(cache_key, result, 60*60*5)
+
+        return result
 
     def resolve_full_product(root, info, id):
         return Product.objects.get(pk=id)

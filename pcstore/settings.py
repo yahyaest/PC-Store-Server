@@ -22,7 +22,6 @@ SECRET_KEY = 'django-insecure-=*2#=n8$2kxp&hsb^**gk8ird-g#^lkp$c#%b4^c8nl454r_+n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -40,6 +39,7 @@ INSTALLED_APPS = [
     "graphql_auth",
     # refresh tokens are optional
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
+    'django_redis',
     'corsheaders',
     'store',
     'tags',
@@ -90,9 +90,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'pcstore',
-        'HOST': 'localhost',
+        # 'HOST': 'localhost',
+        'HOST': '',
         'USER': 'root',
-        'PASSWORD': '25020680'
+        'PASSWORD': 'root',
+        'PORT': '3307'
     }
 }
 
@@ -180,8 +182,24 @@ GRAPHQL_AUTH = {
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #ACCOUNT_EMAIL_VERIFICATION = "none"
 
+ALLOWED_HOSTS = ['localhost','0.0.0.0', 'pc-store-server']
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5000",
-    "http://localhost:4200",
-]
+    "http://localhost:4200"
+    ]
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+# Use Redis as the default cache backend
+CACHE_TTL = 60 * 5  # cache for 5 minutes
+CACHES["default"]["TIMEOUT"] = CACHE_TTL
